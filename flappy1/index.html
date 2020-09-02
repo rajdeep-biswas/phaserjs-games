@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Click Flick</title>
+	<style type="text/css">
+		* { 
+			padding: 0; 
+			margin: 0;
+		} 
+	</style>
+	<script src="js/phaser.min.js" type="text/javascript"></script>
+</head>
+<body>
+	<script type="text/javascript">
+		var game = new Phaser.Game(1366, 768, Phaser.CANVAS);
+	var bird;
+     // bird gravity, will make bird fall if you don't flap
+	var birdGravity = 800;
+     // horizontal bird speed
+	var birdSpeed = 225;
+     // flap thrust
+	var birdFlapPower = 300;
+     // milliseconds between the creation of two pipes
+	var pipeInterval = 2000;
+     // hole between pipes, in pixels
+	var pipeHole = 120;
+	var pipeGroup;
+	var score=0;
+	var scoreText;
+     var point;
+     var wing;
+     var die;
+     
+     var play = function(game){}
+     
+     play.prototype = {
+		preload:function(){
+			game.load.image("bird", "img/bird.png"); 
+			game.load.image("pipe", "img/pipe.png");
+			game.load.image('replay','img/play.jpg');
+		},
+		create:function(){
+			pipeGroup = game.add.group();
+			score = 0;
+			scoreText = game.add.text(10,10,"-",{
+				font:"bold 40px Arial", fill: "#fff"
+			});
+			updateScore();
+			game.stage.backgroundColor = "#FF9F0B";
+			game.stage.disableVisibilityChange = true;
+			game.physics.startSystem(Phaser.Physics.ARCADE);
+			bird = game.add.sprite(80,240,"bird");
+			bird.anchor.set(0.5);
+			game.physics.arcade.enable(bird);
+			bird.body.gravity.y = birdGravity;
+			game.input.onDown.add(flap, this);
+			game.time.events.loop(pipeInterval, addPipe); 
+			addPipe();
+		},
+		update:function(){
+			game.physics.arcade.collide(bird, pipeGroup, die);
+			if(bird.y>game.height){
+				die();
+			}
+		}
+	}
+
+	var stop = function(game){}
+     
+     stop.prototype = {
+		preload:function(){
+			
+		},
+		create:function(){
+			var text = "Game Over\n your score is " + score;
+    	var style = { font: "65px Arial", fill: "#fff", align: "center" };
+		var t = game.add.text(game.world.centerX-250, game.world.centerY- 100, text, style);
+		button = game.add.button(game.world.centerX - 125, 500, 'replay', actionOnClick, actionOnClick, actionOnClick, actionOnClick, actionOnClick);
+		},
+		update:function(){
+		}
+	}
+     
+    game.state.add("Play",play);
+    game.state.add("Stop",stop);
+    game.state.start("Play");
+     
+     function updateScore(){
+		scoreText.text = "Score: "+score;	
+	}
+     
+	function flap(){
+		bird.body.velocity.y = -birdFlapPower;	
+	}
+	
+	function addPipe(){
+		var pipeHolePosition = game.rnd.between(80,480-pipeHole);
+		var upperPipe = new Pipe(game,320,pipeHolePosition-480,-birdSpeed);
+		game.add.existing(upperPipe);
+		pipeGroup.add(upperPipe);
+		var lowerPipe = new Pipe(game,320,pipeHolePosition+pipeHole,-birdSpeed);
+		game.add.existing(lowerPipe);
+		pipeGroup.add(lowerPipe);
+	}
+	
+	function die(){
+		game.state.start("Stop");
+	}
+
+	function actionOnClick () {
+    	game.state.start("Play");
+	}
+	
+	Pipe = function (game, x, y, speed) {
+		Phaser.Sprite.call(this, game, x + 1300, y, "pipe");
+		game.physics.enable(this, Phaser.Physics.ARCADE);
+		this.body.velocity.x = speed;
+		this.giveScore = true;
+	};
+	
+	Pipe.prototype = Object.create(Phaser.Sprite.prototype);
+	Pipe.prototype.constructor = Pipe;
+	
+	Pipe.prototype.update = function() {
+		if(this.x+this.width<bird.x && this.giveScore){
+			score+=0.5;
+			updateScore();
+			this.giveScore = false;
+		}
+		if(this.x<-this.width){
+			this.destroy();
+		}
+	};	
+
+
+	</script>
+</body>
+</html>

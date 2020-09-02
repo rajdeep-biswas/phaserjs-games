@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>flappy	</title>
+	<style type="text/css">
+		* { 
+			padding: 0; 
+			margin: 0;
+		} 
+	</style>
+	<script src="js/phaser.min.js" type="text/javascript"></script>
+</head>
+<body>
+	<script type="text/javascript">
+		var game = new Phaser.Game(640, 480, Phaser.CANVAS, null, {
+	      preload: preload, create: create, update: update
+	    });
+
+	    var bird;
+	    var pipes;
+
+	    function preload() {
+	    	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	    	game.scale.pageAlignHorizontally = true;
+	    	game.scale.pageAlignVertically = true;
+	    	game.stage.backgroundColor = '#71c5cf';
+	    	game.load.image('bird', 'img/bird.png');
+	    	game.load.image('pipe', 'img/pipe.PNG');
+	    }
+
+	    function create() {
+	    	game.load.image('bird', 'img/bird.png');
+	    	game.physics.startSystem(Phaser.Physics.ARCADE);
+	    	bird = game.add.sprite(50, 250, 'bird');
+	    	game.physics.arcade.enable(bird);
+	    	bird.body.gravity.y = 1000;
+
+			game.input.onDown.add(jump, this);
+			pipes = game.add.group(); 
+			this.timer = game.time.events.loop(1500, this.addRowOfPipes, this); 
+    		 
+	    }
+
+	    function addOnePipe(x, y) {
+	    	var pipe = game.add.sprite(x, y, 'pipe');
+		    pipes.add(pipe);
+		    game.physics.arcade.enable(pipe);
+		    pipe.body.velocity.x = -200;  
+		    pipe.checkWorldBounds = true;
+		    pipe.outOfBoundsKill = true;
+	    }
+
+	    function addRowOfPipes() {
+	    	var hole = Math.floor(Math.random() * 5) + 1;
+
+		    for (var i = 0; i < 8; i++)
+		        if (i != hole && i != hole + 1) 
+		            addOnePipe(400, i * 60 + 10);   
+		}
+
+	    function update() {
+
+	    }
+
+	 	function jump() {
+	 		bird.body.velocity.y = -350;
+	 	}
+
+	 	function restartGame() {	
+	 	}
+
+	</script>
+</body>
+</html>
